@@ -12,6 +12,7 @@ class Headers {
 
         const val TRANSFER_ENCODING_CHUNKED = "chunked"
         const val CONTENT_TYPE_MP4 = "video/mp4"
+        const val CONTENT_TYPE_TS = "video/mp2t"
         const val CONTENT_TYPE_M3U8 = "application/vnd.apple.mpegur"
     }
 

@@ -35,7 +35,7 @@ suspend fun read(inputStream: InputStream): Request {
     } else if (isChunked) {
         body = readChunkedBody(inputStream)
     }
-    return Request(top.path, headers, body)
+    return Request(top.method, top.path, headers, body)
 }
 
 suspend fun readLine(inputStream: InputStream): String = withContext(Dispatchers.IO) {
