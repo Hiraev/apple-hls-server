@@ -1,3 +1,6 @@
+ext.args4j_version = '2.33'
+
 dependencies {
     implementation project(':http-server')
+    compile "args4j:args4j:$args4j_version"
 }
