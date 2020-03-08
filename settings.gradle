@@ -1,0 +1,3 @@
+rootProject.name = 'apple-hls-server'
+
+include ':http-server', ':mpeg4-converter', ':hls-server'
