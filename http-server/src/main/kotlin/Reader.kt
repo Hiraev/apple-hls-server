@@ -31,7 +31,7 @@ suspend fun read(inputStream: InputStream): Request {
     var body: ByteArray? = null
 
     if (contentLength != null && contentLength != 0) {
-        body = readBody(inputStream, contentLength)
+        body = readBody(inputStream, contentLength, headers.getBoudary())
     } else if (isChunked) {
         body = readChunkedBody(inputStream)
     }
@@ -59,10 +59,12 @@ suspend fun readLine(inputStream: InputStream): String = withContext(Dispatchers
     lineBuilder.toString()
 }
 
-suspend fun readBody(inputStream: InputStream, size: Int) = withContext(Dispatchers.IO) {
+fun readBody(inputStream: InputStream, size: Int, boundary: String? = null): ByteArray  {
+    if (boundary != null) inputStream.skip(boundary.length.toLong() + 2)
     val byteArray = ByteArray(size)
     inputStream.read(byteArray, 0, size)
-    byteArray
+    if (boundary != null) inputStream.skip(boundary.length.toLong() + 4)
+    return byteArray
 }
 
 suspend fun readChunkedBody(inputStream: InputStream): ByteArray {

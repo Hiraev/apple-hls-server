@@ -5,10 +5,12 @@ import model.Headers
 import model.Request
 import model.Response
 import java.net.ServerSocket
+import java.net.Socket
 import java.util.concurrent.Executors
 
 class Server(
     port: Int,
+    private val timeout: Int = 15000,
     private val router: suspend (Request) -> Response
 ) {
 
@@ -25,15 +27,22 @@ class Server(
     private fun loop() {
         while (enabled) {
             val socket = socket.accept()
-            CoroutineScope(Dispatchers.Default).launch {
-                try {
-                    val request = read(socket.getInputStream())
-                    val response = router.invoke(request)
-                    response.headers.add(Headers.CONTENT_LENGTH to response.body.size.toString())
-                    write(socket.getOutputStream(), response)
-                } catch (e: RuntimeException) {
-                    e.printStackTrace()
-                }
+            socket.soTimeout = timeout
+            handle(socket)
+        }
+    }
+
+    private fun handle(socket: Socket) {
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val request = read(socket.getInputStream())
+                val response = router.invoke(request)
+                response.headers.add(Headers.CONTENT_LENGTH to response.body.size.toString())
+                write(socket.getOutputStream(), response)
+                if (request.headers.isKeepAlive()) handle(socket)
+                else socket.close()
+            } catch (e: RuntimeException) {
+                e.printStackTrace()
             }
         }
     }
