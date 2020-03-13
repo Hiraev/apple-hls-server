@@ -1,0 +1,8 @@
+ext.args4j_version = '2.33'
+ext.ktor_version = '1.3.2'
+
+dependencies {
+    implementation project(':http-server')
+    compile "args4j:args4j:$args4j_version"
+    compile "io.ktor:ktor-server-netty:$ktor_version"
+}

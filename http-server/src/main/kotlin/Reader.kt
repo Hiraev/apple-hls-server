@@ -1,4 +1,7 @@
 import exceptions.BadRequestException
+import extensions.contentLength
+import extensions.getBoundary
+import extensions.isChunked
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import model.Headers
@@ -25,13 +28,13 @@ suspend fun read(inputStream: InputStream): Request {
     }
 
     // Check headers
-    val contentLength = headers.get(Headers.CONTENT_LENGTH)?.toInt()
-    val isChunked = headers.get(Headers.TRANSFER_ENCODING)?.contains(Headers.TRANSFER_ENCODING_CHUNKED) == true
+    val contentLength = headers.contentLength()
+    val isChunked = headers.isChunked()
 
     var body: ByteArray? = null
 
     if (contentLength != null && contentLength != 0) {
-        body = readBody(inputStream, contentLength, headers.getBoudary())
+        body = readBody(inputStream, contentLength, headers.getBoundary())
     } else if (isChunked) {
         body = readChunkedBody(inputStream)
     }
@@ -59,7 +62,7 @@ suspend fun readLine(inputStream: InputStream): String = withContext(Dispatchers
     lineBuilder.toString()
 }
 
-fun readBody(inputStream: InputStream, size: Int, boundary: String? = null): ByteArray  {
+fun readBody(inputStream: InputStream, size: Int, boundary: String? = null): ByteArray {
     if (boundary != null) inputStream.skip(boundary.length.toLong() + 2)
     val byteArray = ByteArray(size)
     inputStream.read(byteArray, 0, size)

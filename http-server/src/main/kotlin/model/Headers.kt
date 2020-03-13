@@ -34,13 +34,6 @@ class Headers {
 
     fun isNotEmpty() = headers.isNotEmpty()
 
-    fun isKeepAlive() = !headers.containsKey(CONNECTION) || !headers[CONNECTION].equals(CONNECTION_CLOSE)
-
-    fun getBoudary() =
-        headers[CONTENT_TYPE]
-            ?.split(";")?.map(String::trim)?.find { it.startsWith("boundary") }
-            ?.split("=")?.map(String::trim)?.get(1)
-
     override fun toString() = headers.map { it.key + ": " + it.value + CR + LF }.reduce(String::plus)
 
 }
