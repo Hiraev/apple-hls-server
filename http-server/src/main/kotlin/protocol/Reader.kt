@@ -13,7 +13,7 @@ import utils.ByteArrayUtils
 import java.io.EOFException
 import java.io.InputStream
 
-suspend fun read(inputStream: InputStream): Request {
+internal suspend fun read(inputStream: InputStream): Request {
     // Read top line
     val topLine = readLine(inputStream)
     if (topLine.isEmpty()) throw BadRequestException()
@@ -42,7 +42,7 @@ suspend fun read(inputStream: InputStream): Request {
     return Request(top.method, top.path, headers, body)
 }
 
-suspend fun readLine(inputStream: InputStream): String = withContext(Dispatchers.IO) {
+internal suspend fun readLine(inputStream: InputStream): String = withContext(Dispatchers.IO) {
     val lineBuilder = StringBuilder()
 
     var prevSym = inputStream.read().toChar()
@@ -63,7 +63,7 @@ suspend fun readLine(inputStream: InputStream): String = withContext(Dispatchers
     lineBuilder.toString()
 }
 
-fun readBody(inputStream: InputStream, size: Int): ByteArray {
+internal fun readBody(inputStream: InputStream, size: Int): ByteArray {
     val byteArray = ByteArray(size)
 
     for (i in 0 until size) {
@@ -72,7 +72,7 @@ fun readBody(inputStream: InputStream, size: Int): ByteArray {
     return byteArray
 }
 
-suspend fun readChunkedBody(inputStream: InputStream): ByteArray {
+internal suspend fun readChunkedBody(inputStream: InputStream): ByteArray {
     println("----- Read chunked")
     var chunkSize: Int
     val chunks = mutableListOf<ByteArray>()
@@ -84,4 +84,4 @@ suspend fun readChunkedBody(inputStream: InputStream): ByteArray {
     return ByteArrayUtils.merge(chunks)
 }
 
-fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
+internal fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }

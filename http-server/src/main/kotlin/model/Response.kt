@@ -10,6 +10,12 @@ class Response(
         body: Body = Body.Empty
 ) : Call(headers, body) {
 
+    init {
+        if (body.size != 0) {
+            headers.add(HttpConstants.Headers.CONTENT_LENGTH to body.size.toString())
+        }
+    }
+
     fun copy(
             code: Int = this.code,
             message: String = this.message,

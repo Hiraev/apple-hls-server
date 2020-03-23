@@ -5,7 +5,7 @@ import model.Method
 import model.TopHeader
 import java.net.URI
 
-fun parseTopHeader(string: String): TopHeader {
+internal fun parseTopHeader(string: String): TopHeader {
     val words = string.split(" ").map(String::trim).filterNot { it.isEmpty() }
     val method = when (words.component1().toUpperCase()) {
         "GET" -> Method.GET
@@ -16,7 +16,7 @@ fun parseTopHeader(string: String): TopHeader {
     return TopHeader(method, uri, words.component3())
 }
 
-fun parseHeader(string: String): Pair<String, String> {
+internal fun parseHeader(string: String): Pair<String, String> {
     val headerElements = string.split(":").map(String::trim)
     return Pair(headerElements.component1(), headerElements.component2())
 }

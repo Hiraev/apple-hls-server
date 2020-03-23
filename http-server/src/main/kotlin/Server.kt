@@ -3,7 +3,6 @@ import extensions.isKeepAlive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import model.constants.HttpConstants
 import protocol.read
 import protocol.write
 import router.Router
@@ -45,7 +44,6 @@ class Server(
                 val request = read(socket.getInputStream())
                 val response = routerObj.invoke(request)
 
-                response.headers.add(HttpConstants.Headers.CONTENT_LENGTH to response.body.size.toString())
                 write(socket.getOutputStream(), response)
                 if (request.headers.isKeepAlive()) {
                     handle(socket, uuid)
