@@ -1,3 +1,3 @@
 package exceptions
 
-class UnsupportedHttpMethodException : RuntimeException()
+class UnsupportedHttpMethodException(message: String? = null) : Throwable(message)

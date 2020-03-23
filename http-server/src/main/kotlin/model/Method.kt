@@ -1,5 +1,5 @@
 package model
 
 enum class Method {
-    GET, POST
+    GET, POST, OTHER
 }

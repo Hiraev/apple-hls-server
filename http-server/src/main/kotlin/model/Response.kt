@@ -1,21 +1,21 @@
 package model
 
-data class Response(
-    val code: Int,
-    val message: String,
-    val httpVersion: String = "HTTP/2.0",
-    val headers: Headers = Headers(),
-    val body: ByteArray = ByteArray(0)
-) {
+import model.constants.HttpConstants
 
-    companion object {
-        val OK = Response(200, "OK")
-        val NOT_FOUND = Response(404, "Not Found")
-        val METHOD_NOT_ALLOWED = Response(405, "Method Not Allowed")
+class Response(
+        val code: Int,
+        val message: String,
+        val httpVersion: String = HttpConstants.HttpVersion.V11,
+        headers: Headers = Headers.EMPTY,
+        body: Body = Body.Empty
+) : Call(headers, body) {
 
-        fun redirectTo(path: String) = Response(301, "Redirect").apply {
-            headers.add("Location" to path)
-        }
-    }
+    fun copy(
+            code: Int = this.code,
+            message: String = this.message,
+            httpVersion: String = this.httpVersion,
+            headers: Headers = this.headers,
+            body: Body = this.body
+    ) = Response(code, message, httpVersion, headers, body)
 
 }

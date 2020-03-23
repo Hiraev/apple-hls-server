@@ -1,3 +1,3 @@
 package exceptions
 
-class BadRequestException : RuntimeException()
+class BadRequestException(message: String? = null) : Throwable(message)

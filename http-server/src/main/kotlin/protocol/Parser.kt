@@ -1,3 +1,5 @@
+package protocol
+
 import exceptions.UnsupportedHttpMethodException
 import model.Method
 import model.TopHeader
@@ -8,7 +10,7 @@ fun parseTopHeader(string: String): TopHeader {
     val method = when (words.component1().toUpperCase()) {
         "GET" -> Method.GET
         "POST" -> Method.POST
-        else -> throw UnsupportedHttpMethodException()
+        else -> throw UnsupportedHttpMethodException(words.joinToString())
     }
     val uri = URI(words.component2())
     return TopHeader(method, uri, words.component3())

@@ -1,17 +1,17 @@
+package protocol
+
 import exceptions.BadRequestException
 import extensions.contentLength
-import extensions.getBoundary
 import extensions.isChunked
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import model.Body
 import model.Headers
 import model.Request
+import model.constants.HttpConstants
 import utils.ByteArrayUtils
+import java.io.EOFException
 import java.io.InputStream
-
-private const val CR = '\r'
-private const val LF = '\n'
-private const val EOF = (-1).toChar()
 
 suspend fun read(inputStream: InputStream): Request {
     // Read top line
@@ -31,13 +31,14 @@ suspend fun read(inputStream: InputStream): Request {
     val contentLength = headers.contentLength()
     val isChunked = headers.isChunked()
 
-    var body: ByteArray? = null
+    var body: Body = Body.Empty
 
     if (contentLength != null && contentLength != 0) {
-        body = readBody(inputStream, contentLength, headers.getBoundary())
+        body = Body.ArrayBody(readBody(inputStream, contentLength))
     } else if (isChunked) {
-        body = readChunkedBody(inputStream)
+        body = Body.ArrayBody(readChunkedBody(inputStream))
     }
+
     return Request(top.method, top.path, headers, body)
 }
 
@@ -45,14 +46,14 @@ suspend fun readLine(inputStream: InputStream): String = withContext(Dispatchers
     val lineBuilder = StringBuilder()
 
     var prevSym = inputStream.read().toChar()
-    if (prevSym == EOF) return@withContext ""
+    if (prevSym == HttpConstants.EOF) throw EOFException()
     var nextSym = inputStream.read().toChar()
-    if (nextSym == EOF) return@withContext ""
+    if (nextSym == HttpConstants.EOF) throw EOFException()
 
     while (true) {
-        if (prevSym == CR && nextSym == LF) {
+        if (prevSym == HttpConstants.CR && nextSym == HttpConstants.LF) {
             break
-        } else if (prevSym != CR) {
+        } else if (prevSym != HttpConstants.CR) {
             lineBuilder.append(prevSym)
         }
         prevSym = nextSym
@@ -62,15 +63,17 @@ suspend fun readLine(inputStream: InputStream): String = withContext(Dispatchers
     lineBuilder.toString()
 }
 
-fun readBody(inputStream: InputStream, size: Int, boundary: String? = null): ByteArray {
-    if (boundary != null) inputStream.skip(boundary.length.toLong() + 2)
+fun readBody(inputStream: InputStream, size: Int): ByteArray {
     val byteArray = ByteArray(size)
-    inputStream.read(byteArray, 0, size)
-    if (boundary != null) inputStream.skip(boundary.length.toLong() + 4)
+
+    for (i in 0 until size) {
+        byteArray[i] = inputStream.read().toByte()
+    }
     return byteArray
 }
 
 suspend fun readChunkedBody(inputStream: InputStream): ByteArray {
+    println("----- Read chunked")
     var chunkSize: Int
     val chunks = mutableListOf<ByteArray>()
     do {
@@ -80,3 +83,5 @@ suspend fun readChunkedBody(inputStream: InputStream): ByteArray {
     } while (chunkSize != 0)
     return ByteArrayUtils.merge(chunks)
 }
+
+fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
