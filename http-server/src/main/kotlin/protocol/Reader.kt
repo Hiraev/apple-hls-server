@@ -73,7 +73,6 @@ internal fun readBody(inputStream: InputStream, size: Int): ByteArray {
 }
 
 internal suspend fun readChunkedBody(inputStream: InputStream): ByteArray {
-    println("----- Read chunked")
     var chunkSize: Int
     val chunks = mutableListOf<ByteArray>()
     do {

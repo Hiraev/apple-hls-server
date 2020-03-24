@@ -42,7 +42,7 @@ class Server(
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 val request = read(socket.getInputStream())
-                val response = routerObj.invoke(request)
+                val response = routerObj.handle(request)
 
                 write(socket.getOutputStream(), response)
                 if (request.headers.isKeepAlive()) {

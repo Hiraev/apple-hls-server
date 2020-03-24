@@ -4,10 +4,6 @@ import model.constants.HttpConstants
 
 class Headers {
 
-    companion object {
-        val EMPTY = Headers()
-    }
-
     private val headers = mutableMapOf<String, String>()
 
     fun add(nameAndValue: Pair<String, String>) {
