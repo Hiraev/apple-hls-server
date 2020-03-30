@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
         GET("/".fullMatcher()) {
             tryFile(common.root, "/index.html")
         }
-        GET(Matcher.NoMatcher) { request ->
+        GET(Matcher.Else) { request ->
             tryFile(common.root, request.uri.path)
         }
         POST("/upload/video".fullMatcher()) { request ->

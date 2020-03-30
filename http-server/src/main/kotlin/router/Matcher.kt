@@ -4,12 +4,12 @@ sealed class Matcher {
 
     class PrefixMatcher(val prefix: String) : Matcher()
     class FullMatcher(val pattern: String) : Matcher()
-    object NoMatcher : Matcher()
+    object Else : Matcher()
 
     fun match(string: String) = when (this) {
         is PrefixMatcher -> string.startsWith(prefix)
         is FullMatcher -> string == pattern
-        is NoMatcher -> true
+        is Else -> true
     }
 
 }
