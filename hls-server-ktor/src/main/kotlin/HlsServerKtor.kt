@@ -1,10 +1,12 @@
 import io.ktor.application.call
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.header
 import io.ktor.request.path
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondFile
+import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
@@ -17,7 +19,7 @@ fun main(args: Array<String>) {
     embeddedServer(Netty, common.port) {
         routing {
             get("/") {
-                call.respondFile(File(common.root.path + "/index.html"))
+                call.respondText(common.getIndexPage(), contentType = ContentType.parse("text/html"))
             }
             get("/*") {
                 val path = call.request.path()
