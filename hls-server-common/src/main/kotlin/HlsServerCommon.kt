@@ -1,3 +1,6 @@
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -9,18 +12,19 @@ class HlsServerCommon(args: Array<String>) {
     }
 
     private val parsedArgs: Args = ArgsParser.parse(args)
-    private val videos = mutableListOf<File>()
-    private val pagesProcessor = PagesProcessor(parsedArgs.root)
 
     val port = parsedArgs.port
     val root = File(parsedArgs.root)
+
+    private val videos: MutableList<File> = readAllM3u8Files().toMutableList()
+    private val pagesProcessor = PagesProcessor(parsedArgs.root)
 
     init {
         require(root.isDirectory)
     }
 
     fun getIndexPage(): String {
-        return pagesProcessor.gegIndexPage(listOf("sadsasd", "sadasdas"))
+        return pagesProcessor.gegIndexPage(videos.map { it.nameWithoutExtension to it.path }.toMap())
     }
 
     fun saveVideo(byteArray: ByteArray) {
@@ -37,14 +41,22 @@ class HlsServerCommon(args: Array<String>) {
     }
 
     fun removeVideo(name: String) {
-        File("$dirName/$name").deleteRecursively()
+        File("$root/$dirName/$name").deleteRecursively()
         videos.removeIf { it.nameWithoutExtension == name }
     }
 
+    private fun readAllM3u8Files() = File(root.path + "/" + dirName).listFiles()
+            ?.filter(File::isDirectory)
+            ?.map {
+                File("$dirName/${it.name}/m3u8/${it.name}.m3u8")
+            } ?: emptyList()
+
     private fun createM3u8(mp4: File) {
-        require(mp4.extension == "mp4")
-        File(mp4.parent + "/m3u8").mkdir()
-        convertVideoAndSave(mp4)
+        GlobalScope.launch(Dispatchers.IO) {
+            require(mp4.extension == "mp4")
+            File(mp4.parent + "/m3u8").mkdir()
+            convertVideoAndSave(mp4)
+        }
     }
 
     private fun convertVideoAndSave(file: File) {
@@ -52,7 +64,7 @@ class HlsServerCommon(args: Array<String>) {
         val res = a.waitFor(5, TimeUnit.SECONDS)
         if (res && a.exitValue() == 0) {
             println("Good")
-            videos += File(file.parent)
+            videos += File("$dirName/${file.nameWithoutExtension}/m3u8/${file.nameWithoutExtension}.m3u8")
         } else {
             processErrorVideoSaving()
         }

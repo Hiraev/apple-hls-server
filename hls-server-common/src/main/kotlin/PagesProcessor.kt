@@ -13,7 +13,7 @@ class PagesProcessor(
         cfg.defaultEncoding = "UTF-8"
     }
 
-    fun gegIndexPage(m3u8FilesPath: List<String>): String {
+    fun gegIndexPage(m3u8FilesPath: Map<String, String>): String {
         val videosString = StringWriter()
         cfg.getTemplate("videos.tmp").process(mapOf("videos" to m3u8FilesPath), videosString)
         val outIndexPage = StringWriter()

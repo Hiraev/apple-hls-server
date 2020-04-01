@@ -25,6 +25,16 @@ fun main(args: Array<String>) {
                 val path = call.request.path()
                 call.respondFile(File(common.root.path + path))
             }
+            get("/delete/video") {
+                call.request.queryParameters["id"]?.let {
+                    common.removeVideo(it)
+                    call.respond(HttpStatusCode.OK)
+                } ?: call.respond(HttpStatusCode.NotFound)
+            }
+            get("/uploaded/videos/*/m3u8/*") {
+                val path = call.request.path()
+                call.respondFile(File(common.root.path + path))
+            }
             post("/upload/video") {
                 require("video/mp4".equals(call.request.header("Content-Type"), ignoreCase = true))
                 val videoByteArray = call.receive<ByteArray>()
