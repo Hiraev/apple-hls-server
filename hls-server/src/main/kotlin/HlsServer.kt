@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
 
     Server(common.port) {
         GET("/".fullMatcher()) {
-            Responses.ok.copy(
+            Responses.ok().copy(
                     body = Body.ArrayBody(common.getIndexPage().toByteArray(Charset.defaultCharset()))
             ).apply {
                 headers.add(HttpConstants.Headers.CONTENT_TYPE to "${Mime.HTML}; charset=UTF-8")
@@ -26,8 +26,8 @@ fun main(args: Array<String>) {
         GET("/delete/video".prefixMatcher()) {
             it.parameters["id"]?.let { id ->
                 common.removeVideo(id)
-                Responses.ok
-            } ?: Responses.notFound
+                Responses.ok().copy()
+            } ?: Responses.notFound()
         }
         GET(Matcher.Else) { request ->
             tryFile(common.root, request.uri.path)
@@ -36,10 +36,10 @@ fun main(args: Array<String>) {
             loadMp4(request)
         }
         setPathNotFoundAction {
-            Responses.notFound
+            Responses.notFound()
         }
         setMethodNotAllowedAction {
-            Responses.methodNotAllowed
+            Responses.methodNotAllowed()
         }
     }.start()
 }
@@ -48,10 +48,12 @@ fun tryFile(root: File, path: String): Response = try {
     Response.fromFile(File(root.path + path))
 } catch (e: Throwable) {
     e.printStackTrace()
-    Responses.notFound
+    Responses.notFound()
 }
 
 fun loadMp4(request: Request): Response {
     request.body.let { it as? Body.ArrayBody }?.byteArray?.let(common::saveVideo)
-    return Responses.redirectTo("/index.html")
+    return Responses.ok().apply {
+        headers.add(HttpConstants.Headers.CONNECTION to HttpConstants.Headers.CONNECTION_CLOSE)
+    }
 }

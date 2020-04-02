@@ -18,9 +18,9 @@ suspend fun write(outputStream: OutputStream, response: Response) = withContext(
             .apply {
                 if (response.headers.isNotEmpty()) {
                     this.append(response.headers)
-                            .append(HttpConstants.CRLF)
                 }
             }
+            .append(HttpConstants.CRLF)
             .toString()
             .toByteArray()
 

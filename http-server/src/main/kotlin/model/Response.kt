@@ -1,8 +1,6 @@
 package model
 
 import extensions.mime
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import model.constants.HttpConstants
 import java.io.File
 
@@ -16,8 +14,8 @@ class Response(
 
     companion object {
         fun fromFile(file: File): Response {
-            val body =  file.readBytes()
-            return Responses.ok.copy(body = Body.ArrayBody(body)).apply {
+            val body = file.readBytes()
+            return Responses.ok().copy(body = Body.ArrayBody(body)).apply {
                 file.mime()?.let {
                     headers.add(HttpConstants.Headers.CONTENT_TYPE to it)
                 }
@@ -26,9 +24,7 @@ class Response(
     }
 
     init {
-        if (body.size != 0) {
-            headers.add(HttpConstants.Headers.CONTENT_LENGTH to body.size.toString())
-        }
+        headers.add(HttpConstants.Headers.CONTENT_LENGTH to body.size.toString())
     }
 
     fun copy(
