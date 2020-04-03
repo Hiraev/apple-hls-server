@@ -82,5 +82,3 @@ internal suspend fun readChunkedBody(inputStream: InputStream): ByteArray {
     } while (chunkSize != 0)
     return ByteArrayUtils.merge(chunks)
 }
-
-internal fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
