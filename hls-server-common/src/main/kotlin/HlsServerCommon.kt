@@ -25,12 +25,9 @@ class HlsServerCommon(args: Array<String>) {
     private val videos: MutableList<Video> = VideoProcessor.readAllM3u8Files().toMutableList()
     private val pagesProcessor = PagesProcessor(parsedArgs.root)
 
-    fun getIndexPage(): String {
-        return pagesProcessor.gegIndexPage(
-                videos
-                        .map { it.name to it.file.completedOrNull() }.toMap()
-        )
-    }
+    fun getIndexPage(): String = videos
+            .associate { it.name to it.file.completedOrNull() }
+            .let(pagesProcessor::gegIndexPage)
 
     fun saveVideo(byteArray: ByteArray) {
         VideoProcessor.processNewVideo(byteArray).let(videos::add)
