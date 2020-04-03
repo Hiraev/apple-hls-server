@@ -1,3 +1,5 @@
+package args
+
 import org.kohsuke.args4j.Option
 
 class Args {
@@ -7,5 +9,8 @@ class Args {
 
     @Option(name = "-p", required = true)
     var port: Int = 8080
+
+    @Option(name = "-b", required = true, handler = IntListOptionHandler::class)
+    lateinit var bitrateList: List<Int>
 
 }

@@ -1,3 +1,5 @@
+package args
+
 import org.kohsuke.args4j.CmdLineParser
 
 object ArgsParser {
