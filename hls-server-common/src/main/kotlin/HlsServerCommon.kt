@@ -2,6 +2,7 @@ import args.Args
 import args.ArgsParser
 import extensions.completedOrNull
 import model.Video
+import processors.PagesProcessor
 import processors.VideoProcessor
 import java.io.File
 

@@ -1,3 +1,5 @@
+package processors
+
 import freemarker.template.Configuration
 import java.io.File
 import java.io.StringWriter

@@ -59,7 +59,8 @@ object VideoProcessor {
     }
 
     private fun convertVideoAndSave(file: File): File {
-        val a = Runtime.getRuntime().exec("ffmpeg -i ${file.path} -b:v 1M -g 60 -hls_time 1 -hls_list_size 0 -hls_segment_size 50000 ${file.parent}/m3u8/${file.nameWithoutExtension}.m3u8")
+//        val a = Runtime.getRuntime().exec("ffmpeg -i ${file.path} -vrf 0 -vf scale=\"1280x720\" -c:a copy -c:v copy ${file.parent}/m3u8/${file.nameWithoutExtension}.m3u8")
+        val a = Runtime.getRuntime().exec("ffmpeg -i ${file.path} -c:a copy -c:v copy ${file.parent}/m3u8/${file.nameWithoutExtension}.m3u8")
         val res = a.waitFor(5, TimeUnit.SECONDS)
         val result = if (res && a.exitValue() == 0) {
             File("$videosPath/${file.nameWithoutExtension}/m3u8/${file.nameWithoutExtension}.m3u8")
@@ -70,13 +71,15 @@ object VideoProcessor {
         return result
     }
 
+    // TODO (remove if it won't be needed)
     private fun getVideoInfo(mp4: File) {
         val process = Runtime.getRuntime().exec("ffprobe -v error -select_streams v:0 -show_entries stream=width,height,bit_rate -of default=noprint_wrappers=1 processors.mp4")
         val res = process.waitFor(5, TimeUnit.SECONDS)
-        process.inputStream.bufferedReader().lines()
+
 
     }
 
+    // TODO (remove if it won't be needed)
     private data class VideoInfo(
             val width: Int,
             val height: Int,
