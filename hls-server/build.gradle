@@ -1,14 +1,14 @@
 ext.args4j_version = '2.33'
 
 dependencies {
-    implementation project(':http-server')
-    implementation project(':hls-server-common')
+    compile project(':http-server')
+    compile project(':hls-server-common')
     compile "args4j:args4j:$args4j_version"
 }
 
 jar {
     manifest {
-        attributes 'Main-Class': 'MainKt'
+        attributes 'Main-Class': 'HlsServerKt'
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
