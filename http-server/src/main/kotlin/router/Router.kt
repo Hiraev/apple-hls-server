@@ -11,28 +11,28 @@ class Router {
 
     private val getRules = mutableListOf<Rule>()
     private val postRules = mutableListOf<Rule>()
-    private lateinit var pathNotFound: (suspend (Request) -> Response)
-    private lateinit var methodNotFound: (suspend (Request) -> Response)
+    private lateinit var pathNotFound: ((Request) -> Response)
+    private lateinit var methodNotFound: ((Request) -> Response)
 
     @Dsl
-    fun POST(matcher: Matcher, action: suspend (Request) -> Response) {
+    fun POST(matcher: Matcher, action: (Request) -> Response) {
         postRules += Rule(matcher, action)
     }
 
     @Dsl
-    fun GET(matcher: Matcher, action: suspend (Request) -> Response) {
+    fun GET(matcher: Matcher, action: (Request) -> Response) {
         getRules += Rule(matcher, action)
     }
 
-    fun setPathNotFoundAction(action: suspend (Request) -> Response) {
+    fun setPathNotFoundAction(action: (Request) -> Response) {
         pathNotFound = action
     }
 
-    fun setMethodNotAllowedAction(action: suspend (Request) -> Response) {
+    fun setMethodNotAllowedAction(action: (Request) -> Response) {
         methodNotFound = action
     }
 
-    suspend fun handle(request: Request): Response {
+    fun handle(request: Request): Response {
         val action = when (request.method) {
             Method.GET -> tryPath(request.uri.path, getRules)
             Method.POST -> tryPath(request.uri.path, postRules)
@@ -46,7 +46,7 @@ class Router {
 
     private data class Rule(
             val matcher: Matcher,
-            val action: suspend (Request) -> Response
+            val action: (Request) -> Response
     )
 
 }
