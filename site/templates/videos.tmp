@@ -1,0 +1,11 @@
+<#list videos as name, url>
+    <#if url??>
+        <p>Видео <b>${name}</b></p>
+        <video controls="" autoplay="" src="${url}" type="audio/x-mpegurl" width="700"></video>
+        <button id="${name}" class="delete_video" onClick="delete_video(this.id)">Удалить видео</button>
+    <#else>
+        <p>Видео <b>${name}</b> обрабатывается...</p>
+    </#if>
+<#else>
+    <p>There are no videos
+</#list>

@@ -1,0 +1,88 @@
+<html>
+	<head>
+  		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div id="main_block">
+			<h3>Videos</h3>
+			<hr/>
+				<div>
+					<label for="file">Choose file to upload</label>
+					<input type="file" id="file" name="file" accept=".mp4" title="File">
+				</div>
+				<div>
+					<button type="submit" id="btn-submit">Upload</button>
+				</div>
+				<div id="myProgress">
+					<div id="myBar"></div>
+				</div>
+			<hr/>
+				${videos}
+			<hr/>
+		</div>
+
+		<#noparse>
+		<script type="text/javascript">
+			
+			// Send video form
+			const form = {
+				file: document.getElementById('file'),
+				name: document.getElementById('name'),
+				submit: document.getElementById('btn-submit')
+			};
+
+			form.submit.addEventListener('click', () => {
+
+					const request = new XMLHttpRequest();
+
+					const requestData = form.file.files[0];
+					console.log('File size: ');
+					console.log(requestData.size);
+
+					request.upload.onprogress = function(event) {
+						console.log(`loaded: ${event.loaded}, total: ${event.total}`);
+  						setProgress(parseInt(event.loaded / event.total * 100));
+					};
+
+					request.open('POST', 'upload/video');
+					request.setRequestHeader('Content-Type', 'video/mp4');
+					request.send(requestData);
+					request.onload = () =;> {
+						if (request.status == 200) {
+							//alert("Видео успешно загружено");
+							document.location.reload();
+						} else {
+							alert(`Не удалось загрузить видео. Ошибка: ${request.status}`)
+						}
+			}
+			})
+
+			// Delete video buttons
+			function delete_video(video_id) {
+				const request = new XMLHttpRequest();
+				let url = new URL('http://localhost/delete/video');
+				url.searchParams.set('id', video_id);
+
+				request.open('GET', url);
+				request.send();
+
+				request.onload = () =;> {
+					if (request.status == 200) {
+						alert("Видео успешно удалено");
+						document.location.reload();
+					} else {
+						alert(`Не удалось удалить видео. Ошибка: ${request.status}`)
+					}
+				}
+			}
+
+			function setProgress(progress) {
+				var elem = document.getElementById("myBar");
+				elem.style.width = progress + "%";
+				elem.innerHTML = progress + "%";
+			}
+
+		</script>
+		</#noparse>
+	</body>
+</html>
