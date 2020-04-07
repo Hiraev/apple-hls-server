@@ -47,7 +47,7 @@
 					request.open('POST', 'upload/video');
 					request.setRequestHeader('Content-Type', 'video/mp4');
 					request.send(requestData);
-					request.onload = () =;> {
+					request.onload = () => {
 						if (request.status == 200) {
 							//alert("Видео успешно загружено");
 							document.location.reload();
@@ -66,7 +66,7 @@
 				request.open('GET', url);
 				request.send();
 
-				request.onload = () =;> {
+				request.onload = () => {
 					if (request.status == 200) {
 						alert("Видео успешно удалено");
 						document.location.reload();
