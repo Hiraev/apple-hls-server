@@ -1,4 +1,3 @@
-import exceptions.BadRequestException
 import extensions.isKeepAlive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -6,7 +5,6 @@ import kotlinx.coroutines.launch
 import protocol.read
 import protocol.write
 import router.Router
-import java.io.EOFException
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.UUID
@@ -45,16 +43,13 @@ class Server(
                 val response = routerObj.handle(request)
 
                 write(socket.getOutputStream(), response)
-                if (request.headers.isKeepAlive()) {
+                if (request.headers.isKeepAlive() && response.headers.isKeepAlive()) {
                     handle(socket, uuid)
                 } else if (!socket.isClosed) {
                     socket.close()
                 }
             } catch (e: Throwable) {
-                if (e !is BadRequestException && e !is EOFException) {
-                    println("[$uuid] Caught: ${e.javaClass.name} ${e.message}")
-                }
-                e.printStackTrace()
+                println("[$uuid] Caught: ${e.javaClass.name} ${e.message}")
             }
         }
     }

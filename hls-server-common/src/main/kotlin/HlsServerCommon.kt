@@ -35,8 +35,10 @@ class HlsServerCommon(args: Array<String>) {
     }
 
     fun removeVideo(name: String) {
-        File("$root/$dirName/$name").deleteRecursively()
-        videos.removeIf { it.name == name && !it.file.isActive }
+        val isVideoRemovedFromList = videos.removeIf { it.name == name && !it.file.isActive }
+        if (isVideoRemovedFromList) {
+            File("$root/$dirName/$name").deleteRecursively()
+        }
     }
 
 }

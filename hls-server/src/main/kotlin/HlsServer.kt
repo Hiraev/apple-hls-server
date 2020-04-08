@@ -53,7 +53,5 @@ fun tryFile(root: File, path: String): Response = try {
 
 fun loadMp4(request: Request): Response {
     request.body.let { it as? Body.ArrayBody }?.byteArray?.let(common::saveVideo)
-    return Responses.ok().apply {
-        headers.add(HttpConstants.Headers.CONNECTION to HttpConstants.Headers.CONNECTION_CLOSE)
-    }
+    return Responses.ok()
 }
