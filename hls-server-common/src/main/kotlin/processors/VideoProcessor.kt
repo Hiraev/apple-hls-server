@@ -39,7 +39,7 @@ object VideoProcessor {
     fun readAllM3u8Files() = videosDir.listFiles()
             ?.filter(File::isDirectory)
             ?.map { File("$videosPath/${it.name}/m3u8/${it.name}.m3u8") }
-            ?.map { Video(it.name, CompletableDeferred(it)) }
+            ?.map { Video(it.nameWithoutExtension, CompletableDeferred(it)) }
             ?: emptyList()
 
     private fun saveMp4(byteArray: ByteArray, name: String): File {
