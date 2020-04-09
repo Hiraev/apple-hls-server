@@ -23,7 +23,7 @@
 
 		<#noparse>
 		<script type="text/javascript">
-			
+
 			// Send video form
 			const form = {
 				file: document.getElementById('file'),
@@ -47,26 +47,24 @@
 					request.open('POST', 'upload/video');
 					request.setRequestHeader('Content-Type', 'video/mp4');
 					request.send(requestData);
-					request.onload = () => {
+					request.onload = () =;> {
 						if (request.status == 200) {
 							//alert("Видео успешно загружено");
 							document.location.reload();
 						} else {
 							alert(`Не удалось загрузить видео. Ошибка: ${request.status}`)
 						}
-			}
+					}
 			})
 
 			// Delete video buttons
 			function delete_video(video_id) {
 				const request = new XMLHttpRequest();
-				let url = new URL('http://localhost/delete/video');
-				url.searchParams.set('id', video_id);
 
-				request.open('GET', url);
+				request.open('GET', `delete/video?id=${video_id}`);
 				request.send();
 
-				request.onload = () => {
+				request.onload = () =;> {
 					if (request.status == 200) {
 						alert("Видео успешно удалено");
 						document.location.reload();
