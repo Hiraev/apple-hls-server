@@ -10,6 +10,7 @@ import model.Headers
 import model.Request
 import model.constants.HttpConstants
 import utils.ByteArrayUtils
+import java.io.DataInputStream
 import java.io.EOFException
 import java.io.InputStream
 
@@ -64,12 +65,9 @@ internal suspend fun readLine(inputStream: InputStream): String = withContext(Di
 }
 
 internal fun readBody(inputStream: InputStream, size: Int): ByteArray {
-    val byteArray = ByteArray(size)
-
-    for (i in 0 until size) {
-        byteArray[i] = inputStream.read().toByte()
-    }
-    return byteArray
+    val array = ByteArray(size)
+    DataInputStream(inputStream).readFully(array, 0, size)
+    return array
 }
 
 internal suspend fun readChunkedBody(inputStream: InputStream): ByteArray {
