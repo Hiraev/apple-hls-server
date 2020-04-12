@@ -1,6 +1,8 @@
 import args.Args
 import args.ArgsParser
-import extensions.completedOrNull
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import model.Video
 import processors.PagesProcessor
 import processors.VideoProcessor
@@ -26,21 +28,35 @@ class HlsServerCommon(args: Array<String>) {
         VideoProcessor.init(bitrateList, videosDir, dirName)
     }
 
+    private val videosMutex = Mutex()
     private val videos: MutableList<Video> = VideoProcessor.readAllM3u8Files().toMutableList()
     private val pagesProcessor = PagesProcessor(parsedArgs.root)
 
     fun getIndexPage(): String = videos
-            .associate { it.name to it.file.completedOrNull() }
+            .associate { it.name to it.file }
             .let(pagesProcessor::gegIndexPage)
 
     fun saveVideo(byteArray: ByteArray) {
-        VideoProcessor.processNewVideo(byteArray).let(videos::add)
+        GlobalScope.launch {
+            VideoProcessor.processNewVideo(byteArray, ::onVideoSaveProcess)
+        }
     }
 
     fun removeVideo(name: String) {
-        val isVideoRemovedFromList = videos.removeIf { it.name == name && !it.file.isActive }
-        if (isVideoRemovedFromList) {
+        videos.removeIf { it.name == name }
+        GlobalScope.launch {
             File("$root/$dirName/$name").deleteRecursively()
+        }
+    }
+
+    private fun onVideoSaveProcess(result: VideoProcessor.Result) {
+        GlobalScope.launch {
+            videosMutex.lock()
+            when (result) {
+                is VideoProcessor.Result.Success -> videos.add(result.video)
+                is VideoProcessor.Result.Failure -> removeVideo(result.name)
+            }
+            videosMutex.unlock()
         }
     }
 

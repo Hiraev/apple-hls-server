@@ -1,9 +1,5 @@
 package processors
 
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import model.Video
 import java.io.File
 import java.util.UUID
@@ -27,19 +23,24 @@ object VideoProcessor {
      *
      * @return m3u8 master file
      */
-    fun processNewVideo(byteArray: ByteArray, name: String = UUID.randomUUID().toString()): Video =
-            Video(
-                    name,
-                    GlobalScope.async(Dispatchers.IO) {
-                        val mp4 = saveMp4(byteArray, name)
-                        createM3u8(mp4)
-                    }
-            )
+    fun processNewVideo(
+            byteArray: ByteArray,
+            onLoad: (Result) -> Unit,
+            name: String = UUID.randomUUID().toString()
+    ) {
+        val result = try {
+            val mp4 = saveMp4(byteArray, name)
+            Result.Success(Video(name, createM3u8(mp4)))
+        } catch (t: Throwable) {
+            Result.Failure(name)
+        }
+        onLoad.invoke(result)
+    }
 
     fun readAllM3u8Files() = videosDir.listFiles()
             ?.filter(File::isDirectory)
             ?.map { File("$videosDirName/${it.name}/${it.name}.m3u8") }
-            ?.map { Video(it.nameWithoutExtension, CompletableDeferred(it)) }
+            ?.map { Video(it.nameWithoutExtension, it) }
             ?: emptyList()
 
     private fun saveMp4(byteArray: ByteArray, name: String): File {
@@ -69,7 +70,7 @@ object VideoProcessor {
     private fun convertVideoAndSave(file: File, bitrate: Int): File {
         File("${file.parent}/$bitrate/").mkdir()
         val process = Runtime.getRuntime().exec("ffmpeg -i ${file.path} -c:a copy -b:v $bitrate -maxrate $bitrate ${file.parent}/$bitrate/${file.nameWithoutExtension}.m3u8")
-        val waited = process.waitFor(10, TimeUnit.SECONDS)
+        val waited = process.waitFor(15, TimeUnit.SECONDS)
         return if (waited && process.exitValue() == 0) {
             File("$bitrate/${file.nameWithoutExtension}.m3u8")
         } else {
@@ -113,5 +114,10 @@ object VideoProcessor {
             val height: Int,
             val bitrate: Int
     )
+
+    sealed class Result {
+        class Success(val video: Video) : Result()
+        class Failure(val name: String) : Result()
+    }
 
 }
