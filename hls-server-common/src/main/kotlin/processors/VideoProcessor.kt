@@ -13,12 +13,12 @@ object VideoProcessor {
 
     private lateinit var bitrateList: List<Int>
     private lateinit var videosDir: File
-    private lateinit var videosPath: String
+    private lateinit var videosDirName: String
 
-    fun init(bitrateList: List<Int>, videosDir: File, videosPath: String) {
+    fun init(bitrateList: List<Int>, videosDir: File, videosDirName: String) {
         this.bitrateList = bitrateList
         this.videosDir = videosDir
-        this.videosPath = videosPath
+        this.videosDirName = videosDirName
     }
 
     /** This function saves the processors as mp4 file then convert it into
@@ -38,7 +38,7 @@ object VideoProcessor {
 
     fun readAllM3u8Files() = videosDir.listFiles()
             ?.filter(File::isDirectory)
-            ?.map { File("$videosPath/${it.name}/m3u8/${it.name}.m3u8") }
+            ?.map { File("$videosDirName/${it.name}/${it.name}.m3u8") }
             ?.map { Video(it.nameWithoutExtension, CompletableDeferred(it)) }
             ?: emptyList()
 
@@ -53,37 +53,65 @@ object VideoProcessor {
     }
 
     private fun createM3u8(mp4: File): File {
+        val videoInfo = getVideoInfo(mp4)
+        println(videoInfo)
         require(mp4.extension == "mp4")
-        File(mp4.parent + "/m3u8").mkdir()
-        return convertVideoAndSave(mp4)
+
+        val m3u8List = bitrateList
+                .filter { it < videoInfo.bitrate }.plus(videoInfo.bitrate).sorted()
+                .associateWith { bitrate -> convertVideoAndSave(mp4, bitrate) }
+
+        mp4.delete()
+        if (m3u8List.isEmpty()) throw Throwable("Can't generate m3u8")
+        return createMasterFile(mp4.nameWithoutExtension, m3u8List)
     }
 
-    private fun convertVideoAndSave(file: File): File {
-//        val a = Runtime.getRuntime().exec("ffmpeg -i ${file.path} -vrf 0 -vf scale=\"1280x720\" -c:a copy -c:v copy ${file.parent}/m3u8/${file.nameWithoutExtension}.m3u8")
-        val a = Runtime.getRuntime().exec("ffmpeg -i ${file.path} -c:a copy -c:v copy ${file.parent}/m3u8/${file.nameWithoutExtension}.m3u8")
-        val res = a.waitFor(5, TimeUnit.SECONDS)
-        val result = if (res && a.exitValue() == 0) {
-            File("$videosPath/${file.nameWithoutExtension}/m3u8/${file.nameWithoutExtension}.m3u8")
+    private fun convertVideoAndSave(file: File, bitrate: Int): File {
+        File("${file.parent}/$bitrate/").mkdir()
+        val process = Runtime.getRuntime().exec("ffmpeg -i ${file.path} -c:a copy -b:v $bitrate -maxrate $bitrate ${file.parent}/$bitrate/${file.nameWithoutExtension}.m3u8")
+        val waited = process.waitFor(10, TimeUnit.SECONDS)
+        return if (waited && process.exitValue() == 0) {
+            File("$bitrate/${file.nameWithoutExtension}.m3u8")
         } else {
             throw Throwable("Error when saving the processors")
         }
-        file.delete()
-        return result
     }
 
-    // TODO (remove if it won't be needed)
-    private fun getVideoInfo(mp4: File) {
-        val process = Runtime.getRuntime().exec("ffprobe -v error -select_streams v:0 -show_entries stream=width,height,bit_rate -of default=noprint_wrappers=1 processors.mp4")
+    private fun getVideoInfo(mp4: File): VideoInfo {
+        val process = Runtime.getRuntime().exec("ffprobe -v error -select_streams v:0 -show_entries stream=width,height,bit_rate -of default=noprint_wrappers=1 ${mp4.path}")
         val res = process.waitFor(5, TimeUnit.SECONDS)
-
-
+        if (res && process.exitValue() == 0) {
+            val bufferedReader = process.inputStream.bufferedReader()
+            return VideoInfo(
+                    getInt(bufferedReader.readLine()),
+                    getInt(bufferedReader.readLine()),
+                    getInt(bufferedReader.readLine())
+            )
+        } else {
+            throw Throwable("Error when trying ffprobe")
+        }
     }
 
-    // TODO (remove if it won't be needed)
+    private fun createMasterFile(name: String, bitrateToFileMap: Map<Int, File>): File {
+        val stringBuilder = StringBuilder("#EXTM3U\n")
+
+        bitrateToFileMap.forEach { (bandwidth, file) ->
+            stringBuilder.append("#EXT-X-STREAM-INF:BANDWIDTH=$bandwidth\n")
+            stringBuilder.append(file.path)
+            stringBuilder.append("\n")
+        }
+        val file = File("${videosDir.path}/$name/$name.m3u8")
+        file.createNewFile()
+        file.writeText(stringBuilder.toString())
+        return File("$videosDirName/$name/$name.m3u8")
+    }
+
+    private fun getInt(string: String): Int = string.split("=").component2().toInt()
+
     private data class VideoInfo(
             val width: Int,
             val height: Int,
-            val resolution: Int
+            val bitrate: Int
     )
 
 }

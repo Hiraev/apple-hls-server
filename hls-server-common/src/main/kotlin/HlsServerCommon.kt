@@ -16,11 +16,14 @@ class HlsServerCommon(args: Array<String>) {
 
     val port = parsedArgs.port
     val root = File(parsedArgs.root)
+    private val bitrateList: List<Int> = parsedArgs.bitrateList.sorted()
+
     private val videosDir = File(parsedArgs.root + "/" + dirName)
 
     init {
         require(root.isDirectory)
-        VideoProcessor.init(parsedArgs.bitrateList, videosDir, dirName)
+        require(bitrateList.all { it > 0 }) { "All bitrate values must be positive" }
+        VideoProcessor.init(bitrateList, videosDir, dirName)
     }
 
     private val videos: MutableList<Video> = VideoProcessor.readAllM3u8Files().toMutableList()

@@ -11,6 +11,6 @@ class Args {
     var port: Int = 8080
 
     @Option(name = "-b", required = true, handler = IntListOptionHandler::class)
-    lateinit var bitrateList: List<Int>
+    lateinit var bitrateList: IntArray
 
 }
