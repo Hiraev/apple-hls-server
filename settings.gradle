@@ -1,3 +1,3 @@
 rootProject.name = 'apple-hls-server'
 
-include ':http-server', ':mpeg4-converter', ':hls-server', ':hls-server-ktor', ':hls-server-common'
+include ':http-server', ':hls-server', ':hls-server-ktor', ':hls-server-common'

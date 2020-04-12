@@ -2,7 +2,6 @@ ext.args4j_version = '2.33'
 ext.freemarker_version = '2.3.30'
 
 dependencies {
-    implementation project(':mpeg4-converter')
     compile "args4j:args4j:$args4j_version"
     compile "org.freemarker:freemarker-gae:$freemarker_version"
 }
