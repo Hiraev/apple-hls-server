@@ -30,16 +30,17 @@ class HlsServerCommon(args: Array<String>) {
 
     private val videosMutex = Mutex()
     private val videos: MutableList<Video> = VideoProcessor.readAllM3u8Files().toMutableList()
+    private val processingVideos: MutableList<String> = mutableListOf()
     private val pagesProcessor = PagesProcessor(parsedArgs.root)
 
     fun getIndexPage(): String = videos
             .associate { it.name to it.file }
+            .plus(processingVideos.map { it to null })
             .let(pagesProcessor::gegIndexPage)
 
     fun saveVideo(byteArray: ByteArray) {
-        GlobalScope.launch {
-            VideoProcessor.processNewVideo(byteArray, ::onVideoSaveProcess)
-        }
+        val processingVideoName = VideoProcessor.processNewVideo(byteArray, ::onVideoSaveCompleted)
+        processingVideos.add(processingVideoName)
     }
 
     fun removeVideo(name: String) {
@@ -49,7 +50,9 @@ class HlsServerCommon(args: Array<String>) {
         }
     }
 
-    private fun onVideoSaveProcess(result: VideoProcessor.Result) {
+    private fun onVideoSaveCompleted(result: VideoProcessor.Result) {
+        processingVideos.remove(result.name)
+
         GlobalScope.launch {
             videosMutex.lock()
             when (result) {

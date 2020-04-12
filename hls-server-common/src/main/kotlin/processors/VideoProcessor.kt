@@ -1,5 +1,7 @@
 package processors
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import model.Video
 import java.io.File
 import java.util.UUID
@@ -27,14 +29,17 @@ object VideoProcessor {
             byteArray: ByteArray,
             onLoad: (Result) -> Unit,
             name: String = UUID.randomUUID().toString()
-    ) {
-        val result = try {
-            val mp4 = saveMp4(byteArray, name)
-            Result.Success(Video(name, createM3u8(mp4)))
-        } catch (t: Throwable) {
-            Result.Failure(name)
+    ): String {
+        GlobalScope.launch {
+            val result = try {
+                val mp4 = saveMp4(byteArray, name)
+                Result.Success(Video(name, createM3u8(mp4)))
+            } catch (t: Throwable) {
+                Result.Failure(name)
+            }
+            onLoad.invoke(result)
         }
-        onLoad.invoke(result)
+        return name
     }
 
     fun readAllM3u8Files() = videosDir.listFiles()
@@ -115,9 +120,9 @@ object VideoProcessor {
             val bitrate: Int
     )
 
-    sealed class Result {
-        class Success(val video: Video) : Result()
-        class Failure(val name: String) : Result()
+    sealed class Result(val name: String) {
+        class Success(val video: Video) : Result(video.name)
+        class Failure(name: String) : Result(name)
     }
 
 }
